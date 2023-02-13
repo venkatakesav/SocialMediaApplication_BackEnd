@@ -5,6 +5,29 @@ const User = require('../models/user_model')
 const Post = require('../models/post_model')
 const mongoose = require('mongoose')
 
+const getPost = async (req, res, next) => {
+    const userId = req.params.uid //Obtain the userId from the request -> Encoded in the URL
+    const PlaceId = req.params.pid //Obtain the userId from the request -> Encoded in the URL
+
+    let posts;
+    try {
+        posts = await Post.find()
+    } catch (err) {
+        const error = new HttpError('Something went wrong, could not find a post.', 500)
+        return next(error)
+    }
+
+    if (!posts) {
+        // console.log("No place found")
+        const error = new HttpError('Could not find any post.', 404)
+        return next(error)
+    }
+
+    res.json({ posts: (await posts).map(post => post.toObject({ getters: true })) })
+    // console.log("GET Request to the homepage -> Places_routes");
+}
+
+
 const createPost = async (req, res, next) => {
     const u_id = req.params.uid //Obtain the User Id from the request -> Encoded in the URL
     const p_id = req.params.pid //Obtain the Place Id from the request -> Encoded in the URL
@@ -46,3 +69,4 @@ const createPost = async (req, res, next) => {
 }
 
 exports.createPost = createPost
+exports.getPost = getPost
