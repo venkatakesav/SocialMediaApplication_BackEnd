@@ -8,6 +8,7 @@ mongoose.set('strictQuery', false)  //To avoid the deprecation warning
 
 const placesRoutes = require("./routes/places_routes.js"); //You can use this as a middleware
 const usersRoutes = require("./routes/user_routes.js"); //You can use this as a middleware
+const postsRoutes = require("./routes/post_routes.js"); //You can use this as a middleware
 
 const app = express()
 
@@ -16,11 +17,20 @@ const app = express()
 //To be able to parse the body of requests
 app.use(bodyParser.json()) //This is a middleware
 
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*') //To allow all origins
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE')
+    next()
+})
+
 //To make sure that we only reach the placesRoutes if the request is for /api/places
 app.use('/api/places', placesRoutes) //And at the same time -> No need to add /api/places to the routes in places_routes.js
 // app.use('/api/users', usersRoutes) //And at the same time -> No need to add /api/places to the routes in places_routes.js
 
 app.use('/api/users', usersRoutes)
+
+app.use('/api/posts', postsRoutes)
 
 app.use((req, res, next) => {
     const error = new HttpError('Could not find this route.', 404)
@@ -40,7 +50,7 @@ app.use((error, req, res, next) => {
 
 //If you want to use the async await syntax, you can use the following:
 mongoose.
-connect("mongodb+srv://DASS_Project1:3lJbtT4uSIHlB2Uh@cluster0.an8skqe.mongodb.net/places?retryWrites=true&w=majority").then(() => app.listen(3000, () => console.log('Server started on port 3000')))
+connect("mongodb+srv://DASS_Project1:3lJbtT4uSIHlB2Uh@cluster0.an8skqe.mongodb.net/mern?retryWrites=true&w=majority").then(() => app.listen(5000, () => console.log('Server started on port 5000')))
 .catch((e) => console.log(e)) 
 
 

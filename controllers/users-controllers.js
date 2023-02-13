@@ -1,33 +1,21 @@
 const { uuid } = require('uuidv4');
 const { validationResult } = require('express-validator')
-const {map} = require('lodash')
+const { map } = require('lodash')
 const HttpError = require('../models/http-error')
 const User = require('../models/user_model')
-
-let DUMMY_USERS = [
-    {
-        id: "u1",
-        name: "Kesav",
-        email: "Kesavistheboss@gmail.com",
-        password: "kesav"
-    },
-    {
-        id: "u2",
-        name: "Kesav_Clone",
-        email: "Kesavistheboss@gmail1.com",
-        password: "kesavC"
-    }
-]
+const mongoose = require('mongoose')
 
 const getUsers = async (req, res, next) => {
+    const uid = req.params.uid //This contains the user id of the user requested
+    console.log(uid)
     let users
-    try { users = await User.find({}, "-password") }
-    catch (err) {   
+    try { users = await User.findById(uid)}
+    catch (err) {
         const error = new HttpError('Fetching users failed, please try again later.', 500)
         return next(error)
     }
     // console.log(users)
-    res.json({users: users.map(user => user.toObject({getters: true}))})
+    res.json({ users: users.toObject({ getters: true }) })
 }
 
 const signup = async (req, res, next) => {
@@ -38,7 +26,10 @@ const signup = async (req, res, next) => {
         )
     }
 
-    const { name, email, password} = req.body; //Destructuring the request
+    console.log(req.body)
+
+    const { name, email, password, age, contact } = req.body; //Destructuring the request
+
 
     const existingUser = await User.findOne({ email: email })
     if (existingUser == 0) {
@@ -50,9 +41,14 @@ const signup = async (req, res, next) => {
     const createdUser = new User({
         name,
         email,
-        image: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlcnxlbnwwfHwwfHw%3D&w=1000&q=80",
         password,
-        places: []
+        image: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlcnxlbnwwfHwwfHw%3D&w=1000&q=80",
+        age: age,
+        contact: contact,
+        places: [],
+        places_following: [],
+        followers: [],
+        following: []
     });
 
     try {
@@ -71,6 +67,8 @@ const login = async (req, res, next) => {
     //Destructure the request -> Email and password
     const { email, password } = req.body;
 
+    // console.log(req.body)
+
     const existingUser = await User.findOne({ email: email })
     if (!existingUser) {
         const error = new HttpError('User does not exist, please signup instead.', 422)
@@ -85,7 +83,7 @@ const login = async (req, res, next) => {
         return next(error)
     }
 
-    res.json({ message: "Logged in!" })
+    res.json({ message: "Logged in!", user: existingUser.toObject({ getters: true }) })
 }
 
 exports.getUsers = getUsers;
